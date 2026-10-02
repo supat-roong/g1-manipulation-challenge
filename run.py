@@ -152,8 +152,34 @@ class G1Controller:
   def _build_joint_mappings(self):
     self.joint_names = self.config["joint_names"]
     self.num_joints = len(self.joint_names)
+    # TWO mappings, deliberately (measured 2026-09-12).
+    #
+    # The config's joint order is the policies' 29-D layout, NOT the model's:
+    # in g1.xml the seven left-hand finger joints sit between the left arm and
+    # the right arm, so `7 + i` points the seven right-arm entries at the left
+    # fingers, whose actuators are dead (`ctrlrange 0 0`) and whose angles are
+    # always 0.
+    #
+    # `joint_qpos_indices` keeps that positional map, because the BODY experts
+    # (walker / rotator / croucher) were trained with the arms at their default
+    # pose: reading zeros there holds them in the distribution they know.
+    # Feeding them the true right-arm angles — which this pipeline swings ~60
+    # degrees during a grasp — takes them off-distribution and collapses the
+    # scripted pipeline from 48/50 to 0/20 on the same episodes (4 falls,
+    # 16 never_captured; `eval/results/jmapfix_shipped_n20_seed3_*`).
+    #
+    # `arm_qpos_indices` resolves the right arm BY NAME, for the right_reacher,
+    # whose observation is its own arm state and which is useless without it
+    # (median palm error 0.246 -> 0.173 m; `g1rl/runs/evals/reacher_raw_eval*`).
     self.joint_qpos_indices = {n: 7 + i for i, n in enumerate(self.joint_names)}
     self.joint_qvel_indices = {n: 6 + i for i, n in enumerate(self.joint_names)}
+    self.arm_qpos_indices, self.arm_qvel_indices = {}, {}
+    for i, n in enumerate(self.joint_names):
+      jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, n)
+      self.arm_qpos_indices[n] = (int(self.model.jnt_qposadr[jid]) if jid >= 0
+                                  else 7 + i)
+      self.arm_qvel_indices[n] = (int(self.model.jnt_dofadr[jid]) if jid >= 0
+                                  else 6 + i)
 
     self.default_joint_pos = np.zeros(self.num_joints, dtype=np.float32)
     for name, value in self.config["default_joint_pos"].items():
@@ -334,16 +360,17 @@ class G1Controller:
     return vel
 
   def _get_arm_joint_positions(self):
+    """The right arm's OWN state, resolved by name (see _build_joint_mappings)."""
     pos = np.zeros(len(self.right_arm_indices), dtype=np.float32)
     for i, idx in enumerate(self.right_arm_indices):
       n = self.joint_names[idx]
-      pos[i] = self.data.qpos[self.joint_qpos_indices[n]] - self.arm_default_pos[i]
+      pos[i] = self.data.qpos[self.arm_qpos_indices[n]] - self.arm_default_pos[i]
     return pos
 
   def _get_arm_joint_velocities(self):
     vel = np.zeros(len(self.right_arm_indices), dtype=np.float32)
     for i, idx in enumerate(self.right_arm_indices):
-      vel[i] = self.data.qvel[self.joint_qvel_indices[self.joint_names[idx]]]
+      vel[i] = self.data.qvel[self.arm_qvel_indices[self.joint_names[idx]]]
     return vel
 
   def _get_palm_pos_in_pelvis(self):
@@ -390,6 +417,25 @@ class G1Controller:
     action = self.walker_policy(obs)
     target_pos = self.default_joint_pos + action * self.action_scales
 
+    target_pos = self.arm_overlay(target_pos, proj_gravity)
+
+    self.last_action = action.copy()
+    return target_pos
+
+  def arm_overlay(self, target_pos, proj_gravity=None):
+    """Write the ARM part of a joint target: left arm at default, right arm
+    frozen or flown by the reacher.
+
+    Factored out of `step` unchanged and called from it, so the walker path is
+    exactly what it always was. It exists separately because a body expert
+    that REPLACES `step` -- `croucher_probe.crouch_step`, routed in by
+    `HybridRunner.crouch_h` -- otherwise loses the reacher entirely and stows
+    the arm, which is invisible until something gates the croucher with the
+    hand loaded.
+    """
+    if proj_gravity is None:
+      proj_gravity = self._get_projected_gravity()
+
     # Arms: left arm always at default, right arm holds last reach position
     for idx in self.arm_indices:
       target_pos[idx] = self.default_joint_pos[idx]
@@ -424,7 +470,6 @@ class G1Controller:
         target_pos[full_idx] = arm_target[i]
       self.last_arm_action = arm_action.copy()
 
-    self.last_action = action.copy()
     return target_pos
 
   def _cache_actuator_ids(self):
