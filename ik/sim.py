@@ -1,27 +1,16 @@
-#!/usr/bin/env python3
-"""End-to-end pick & place: brown table -> blue table. Self-contained.
+"""Simulation layer for the IK pipeline: scene, runner, arm IK and the walk.
 
-Verified building blocks (from earlier probes this session):
-  - walk-to-position: P-controller over the walker's velocity commands with a
-    0.30 m/s floor (the gait deadbands smaller commands: steps in place),
-    break on arrival; yaw used for aiming (accurate), strafe is not.
-  - arm control: discrete kinematic 6-DoF DLS IK (mj_jacSite; mj_comPos is
-    REQUIRED on scratch data or the Jacobian is silently zero) + aim-and-
-    correct rounds, with gravity sag cancelled in closed form by adding
-    qfrc_bias/kp to the arm's POSITION SETPOINT. No qfrc_applied wrench:
-    every term is computable on a real robot (qfrc_bias from inverse dynamics
-    on the encoders, kp from the controller config).
-  - grasp: TOP-DOWN (fingers straight down; side approaches drag the fingers
-    on the tabletop), fingers pre-curled to 40% for descent, grip ramped.
-
-Sequence:
-  pick stance (-0.40, 0.10, yaw +20deg) -> top-down grasp, squeeze 1.1x,
-  lift 15 cm -> transport west of the brown table (the inter-table gap is
-  narrower than the robot) -> place stance (-0.41, -0.35, yaw -20deg) ->
-  lower until the cylinder is 1.5 cm above the blue tabletop -> release,
-  retract -> verify: cylinder upright on the blue table, stable for 2 s.
-
-Writes key frames + e2e_run.mp4 to frames/. Exit 0 on full E2E pass.
+  - walk: P-controller over the walker's velocity commands with a 0.30 m/s
+    floor (the gait deadbands smaller commands: it steps in place), break on
+    arrival; yaw is used for aiming (accurate), strafe is not.
+  - arm: discrete kinematic 6-DoF DLS IK (mj_jacSite; mj_comPos is REQUIRED on
+    scratch data or the Jacobian is silently zero) + aim-and-correct rounds,
+    with gravity sag cancelled in closed form by adding qfrc_bias/kp to the
+    arm's POSITION SETPOINT. No qfrc_applied wrench: every term is computable
+    on a real robot (qfrc_bias from inverse dynamics on the encoders, kp from
+    the controller config).
+  - `Runner` steps the physics at 200 Hz, the policies at 50 Hz, and records
+    the telemetry, video and snapshots the pipeline reports.
 """
 
 import json
@@ -42,8 +31,6 @@ OUT_DIR = Path(__file__).resolve().parent / "frames"
 OUT_DIR.mkdir(exist_ok=True)
 DECIMATION = 4
 
-GRASP_Z = 0.01           # the config whose transport slip stayed lowest
-                         # (0.0 and below jam the fingertips on the tabletop)
 PLACE_XY = np.array([-0.15, -0.62])  # blue table, ~7 cm inside the NE corner
 BLUE_TOP_Z = 0.633
 CYL_HALF = 0.037
@@ -999,209 +986,3 @@ def walk_to(runner, goal_xy, goal_yaw=0.0, timeout=20.0, tol=0.07, cap=0.4):
   runner.run(1.5)
   return float(np.linalg.norm(goal_xy - data.qpos[:2]))
 
-
-def pick_grasp_orientation(runner, ik, palm_target_fn):
-  """Top-down grasp sweep over the horizontal thumb direction."""
-  best = None
-  for ang_deg in range(0, 360, 30):
-    a = np.radians(ang_deg)
-    R = R_from_axes([0, 0, -1], [np.cos(a), np.sin(a), 0.0])
-    _, rp, rr = ik.solve(runner.data, palm_target_fn(R), R)
-    if rp < 0.03 and rr < 5.0:  # placement XY tolerance is wide; touchdown
-      return R, ang_deg        # handles the height
-    if best is None or rp < best[2]:
-      best = (R, ang_deg, rp)
-  print(f"  [info] no clean top-grasp; best thumb dir {best[1]} deg "
-        f"resid {best[2] * 1000:.0f} mm")
-  return None
-
-
-# --------------------------------------------------------------------- #
-# main sequence
-# --------------------------------------------------------------------- #
-def main():
-  model, data, ctrl = build_sim()
-  ik = ArmIK6(model, ctrl)
-  runner = Runner(model, data, ctrl, ik)
-  ok = {}
-
-  runner.run(2.0)
-  cyl_rest = runner.cyl_pos()
-  offset = runner.grasp_center_offset()
-  print(f"grasp center (palm frame): {np.round(offset, 3).tolist()}")
-
-  # ---------------- PICK ----------------
-  e = walk_to(runner, [-0.40, 0.10], goal_yaw=0.35)
-  print(f"[PICK  walk ] base err {e * 100:.1f} cm")
-  cyl = runner.cyl_pos()
-
-  def palm_target(R):
-    return cyl + np.array([0, 0, GRASP_Z]) - R @ offset
-  pick = pick_grasp_orientation(runner, ik, palm_target)
-  if pick is None:
-    print("ABORT: no reachable top-grasp at pick stance")
-    runner.close_video()
-    sys.exit(1)
-  R_g, thumb_dir = pick
-  print(f"[PICK  orient] top-down, thumb dir {thumb_dir} deg")
-
-  pre = palm_target(R_g) - 0.12 * R_g[:, 0]
-  e = runner.goto(pre, R_g, rounds=2)
-  print(f"[PICK  pre  ] palm err {e * 100:.1f} cm")
-  runner.set_grip(0.4, seconds=0.4)  # pre-curl: open tips would hit the table
-  e = runner.goto_track(
-    lambda: runner.cyl_pos() + np.array([0, 0, GRASP_Z]) - R_g @ offset,
-    R_g, rounds=3, max_shift=0.04, rate=0.008)
-  print(f"[PICK  descend] palm err {e * 100:.1f} cm")
-  # Full close is the measured optimum: lighter grips slip more at
-  # lift-off, 1.1 over-squeeze ejects the cylinder.
-  runner.set_grip(1.0, seconds=0.8)
-  runner.run(0.8)
-  print(f"[PICK  grip ] finger contacts {runner.finger_contacts()}")
-  runner.snap("E1_grip", lookat=runner.cyl_pos())
-
-  palm_now = runner.data.site_xpos[ik.site_id].copy()
-  runner.goto(palm_now + np.array([0, 0, 0.15]), R_g, rounds=2, rate=0.008)
-  runner.run(1.0)
-  rise = runner.cyl_pos()[2] - cyl_rest[2]
-  ok["pick"] = bool(rise > 0.10 and runner.finger_contacts() > 0)
-  print(f"[PICK  lift ] rise {rise * 100:.1f} cm, contacts "
-        f"{runner.finger_contacts()} -> {'PASS' if ok['pick'] else 'FAIL'}")
-  runner.snap("E2_lift", lookat=runner.cyl_pos())
-  if not ok["pick"]:
-    runner.close_video()
-    print("\nE2E: FAIL (pick)")
-    sys.exit(1)
-
-  # ---------------- TRANSPORT ----------------
-  def slip():
-    p = runner.data.site_xpos[ik.site_id]
-    R = runner.data.site_xmat[ik.site_id].reshape(3, 3)
-    return (R.T @ (runner.cyl_pos() - p))[0]  # depth along fingers
-
-  print(f"[TRANS slip ] after lift: {slip() * 100:.1f} cm along fingers")
-
-  # Carry tilt: rotate the palm 35 deg about the horizontal sep-axis so the
-  # thumb side swings under the cylinder — gravity loads the thumb hook
-  # instead of sliding the cylinder out along the fingers.
-  th = np.radians(35)
-  n = R_g[:, 2]  # sep axis (horizontal)
-  K = np.array([[0, -n[2], n[1]], [n[2], 0, -n[0]], [-n[1], n[0], 0]])
-  R_carry = (np.eye(3) + np.sin(th) * K + (1 - np.cos(th)) * K @ K) @ R_g
-  palm_now = runner.data.site_xpos[ik.site_id].copy()
-  runner.goto(palm_now, R_carry, rounds=1, rate=0.006)
-  print(f"[TRANS tilt ] carry tilt applied, slip {slip() * 100:.1f} cm, "
-        f"contacts {runner.finger_contacts()}")
-
-  # two legs: diagonal back-out with the yaw turn, then a straight
-  # 0.45 m approach (long enough to beat the gait deadband)
-  legs = [([-0.80, -0.05], -0.35), ([-0.41, -0.35], -0.35)]
-  held = True
-  for goal, yaw in legs:
-    e = walk_to(runner, goal, goal_yaw=yaw, timeout=30.0)
-    held = runner.finger_contacts() > 0 and \
-        runner.cyl_pos()[2] - cyl_rest[2] > 0.03
-    print(f"[TRANS leg  ] goal {goal} err {e * 100:.1f} cm, held={bool(held)}, "
-          f"cyl z {runner.cyl_pos()[2]:.3f}, slip {slip() * 100:.1f} cm")
-    if not held:
-      break
-  ok["transport"] = bool(held)
-  runner.snap("E3_at_blue", lookat=runner.cyl_pos())
-  if not held:
-    runner.close_video()
-    print("\nE2E: FAIL (dropped in transport)")
-    sys.exit(1)
-
-  # ---------------- PLACE ----------------
-  palm_p = runner.data.site_xpos[ik.site_id].copy()
-  palm_R = runner.data.site_xmat[ik.site_id].reshape(3, 3).copy()
-  cyl_in_palm = palm_R.T @ (runner.cyl_pos() - palm_p)
-  print(f"[PLACE hold ] cylinder in palm frame: "
-        f"{np.round(cyl_in_palm, 3).tolist()}, in-grip tilt "
-        f"{runner.cyl_tilt_deg():.0f} deg")
-
-  place_target = np.array([PLACE_XY[0], PLACE_XY[1],
-                           BLUE_TOP_Z + CYL_HALF + 0.015])
-
-  def place_palm_target(R):
-    return place_target - R @ cyl_in_palm
-
-  R_p = thumb_dir2 = None
-  for attempt in range(2):
-    _, rp, rr = ik.solve(runner.data, place_palm_target(R_g), R_g)
-    if rp < 0.03 and rr < 5.0:  # reuse pick orientation: no wrist twist
-      R_p, thumb_dir2 = R_g, thumb_dir
-      break
-    pick2 = pick_grasp_orientation(runner, ik, place_palm_target)
-    if pick2 is not None:
-      R_p, thumb_dir2 = pick2
-      break
-    if attempt == 0:  # out of reach: back out and re-approach (short hops
-      # can't move the robot — gait deadband)
-      walk_to(runner, [-0.75, -0.10], goal_yaw=-0.35, timeout=20.0)
-      e = walk_to(runner, [-0.40, -0.33], goal_yaw=-0.35, timeout=20.0)
-      print(f"[PLACE walk+] re-approached, base err {e * 100:.1f} cm")
-  if R_p is None:
-    print("ABORT: no reachable top-grasp pose over the blue table")
-    runner.close_video()
-    sys.exit(1)
-  print(f"[PLACE orient] top-down, thumb dir {thumb_dir2} deg")
-
-  # descend with a 20-deg thumb-under tilt: the cylinder rests against the
-  # thumb hook instead of swinging freely on the center-depth pinch, and the
-  # press-to-seat rights it against the tabletop
-  th2 = np.radians(20)
-  n2 = R_p[:, 2]
-  K2 = np.array([[0, -n2[2], n2[1]], [n2[2], 0, -n2[0]], [-n2[1], n2[0], 0]])
-  R_pt = (np.eye(3) + np.sin(th2) * K2 + (1 - np.cos(th2)) * K2 @ K2) @ R_p
-
-  # traverse in ONE slow move with the full carry tilt held (the thumb hook
-  # keeps the cylinder from flopping on the center-depth pinch), then ease
-  # to the 20-deg descent tilt
-  pre_carry = place_palm_target(R_carry) + np.array([0, 0, 0.08])
-  runner.goto(pre_carry, R_carry, rounds=1, rate=0.003)
-  print(f"[PLACE trav ] in-grip tilt {runner.cyl_tilt_deg():.0f} deg, "
-        f"contacts {runner.finger_contacts()}")
-  pre2 = place_palm_target(R_pt) + np.array([0, 0, 0.08])
-  e = runner.goto(pre2, R_pt, rounds=1, rate=0.003)
-  print(f"[PLACE pre  ] palm err {e * 100:.1f} cm, in-grip tilt "
-        f"{runner.cyl_tilt_deg():.0f} deg")
-  runner.snap("E4_lower", lookat=runner.cyl_pos())
-
-  # contact-monitored slow descent; long seat press rights the cylinder
-  touched = runner.touchdown(R_pt, max_drop=0.16, seat=1.0, rate=0.002)
-  print(f"[PLACE touch] contact={touched}, cyl z {runner.cyl_pos()[2]:.3f}, "
-        f"tilt {runner.cyl_tilt_deg():.0f} deg")
-  # thumb-first release: the thumb's parting nudge is caught by the two
-  # stiff fingers opposite; then the finger pair opens symmetrically
-  runner.set_grip(0.0, seconds=0.4, fingers=False)
-  runner.run(0.3)
-  print(f"[PLACE thumb] cyl z {runner.cyl_pos()[2]:.3f}, "
-        f"tilt {runner.cyl_tilt_deg():.0f} deg")
-  runner.set_grip(0.0, seconds=0.4, thumb=False)
-  runner.run(0.4)
-  print(f"[PLACE open ] cyl z {runner.cyl_pos()[2]:.3f}, "
-        f"tilt {runner.cyl_tilt_deg():.0f} deg")
-  palm_now = runner.data.site_xpos[ik.site_id].copy()
-  runner.goto(palm_now + np.array([0, 0, 0.12]), R_pt, rounds=1, rate=0.006)
-  runner.run(2.0)
-
-  cyl_f = runner.cyl_pos()
-  tilt = runner.cyl_tilt_deg()
-  on_table = (-0.62 < cyl_f[0] < 0.02) and (-1.02 < cyl_f[1] < -0.58) \
-      and abs(cyl_f[2] - (BLUE_TOP_Z + CYL_HALF)) < 0.02
-  ok["place"] = bool(on_table and tilt < 25)
-  print(f"[PLACE done ] cylinder at {np.round(cyl_f, 3).tolist()}, "
-        f"tilt {tilt:.0f} deg, dist to target "
-        f"{np.linalg.norm(cyl_f[:2] - PLACE_XY) * 100:.1f} cm "
-        f"-> {'PASS' if ok['place'] else 'FAIL'}")
-  runner.snap("E5_placed", lookat=cyl_f)
-  runner.run(1.0)
-  runner.close_video()
-
-  print(f"\nE2E PICK & PLACE: {'PASS' if all(ok.values()) else 'FAIL'}  ({ok})")
-  sys.exit(0 if all(ok.values()) else 1)
-
-
-if __name__ == "__main__":
-  main()
