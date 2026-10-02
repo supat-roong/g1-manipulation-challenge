@@ -1,2 +1,13 @@
 __pycache__/
 *.pyc
+.DS_Store
+.venv/
+MUJOCO_LOG.TXT
+
+# sweep output (eval/sweep.py) and rendered episodes
+eval/results/
+*.mp4
+
+# local agent notes
+CLAUDE.md
+docs/
