@@ -1,0 +1,107 @@
+[
+ {
+  "mode": "ik",
+  "preset": "shipped",
+  "seed": 3,
+  "ep": 0,
+  "success": true,
+  "failure": "success",
+  "phase": "placed",
+  "sim_time_s": 101.64,
+  "cyl_final": [
+   -0.4612,
+   -0.6375,
+   0.6679
+  ]
+ },
+ {
+  "mode": "ik",
+  "preset": "shipped",
+  "seed": 3,
+  "ep": 1,
+  "success": true,
+  "failure": "success",
+  "phase": "placed",
+  "sim_time_s": 130.78,
+  "cyl_final": [
+   -0.5057,
+   -0.6485,
+   0.6679
+  ]
+ },
+ {
+  "mode": "ik",
+  "preset": "shipped",
+  "seed": 3,
+  "ep": 2,
+  "success": true,
+  "failure": "success",
+  "phase": "placed",
+  "sim_time_s": 115.04,
+  "cyl_final": [
+   -0.347,
+   -0.6452,
+   0.6679
+  ]
+ },
+ {
+  "mode": "ik",
+  "preset": "hl_full",
+  "seed": 3,
+  "ep": 0,
+  "success": true,
+  "failure": "success",
+  "phase": "placed",
+  "sim_time_s": 173.52,
+  "cyl_final": [
+   -0.3076,
+   -0.573,
+   0.6972
+  ]
+ },
+ {
+  "mode": "ik",
+  "preset": "hl_full",
+  "seed": 3,
+  "ep": 1,
+  "success": true,
+  "failure": "success",
+  "phase": "placed",
+  "sim_time_s": 181.16,
+  "cyl_final": [
+   -0.5073,
+   -0.5676,
+   0.5366
+  ]
+ },
+ {
+  "mode": "hl",
+  "preset": "hl_full",
+  "seed": 3,
+  "ep": 0,
+  "success": true,
+  "failure": "success",
+  "phase": "placed",
+  "sim_time_s": 206.9,
+  "cyl_final": [
+   -0.6195,
+   -0.5654,
+   0.6972
+  ]
+ },
+ {
+  "mode": "hl",
+  "preset": "hl_full",
+  "seed": 3,
+  "ep": 1,
+  "success": false,
+  "failure": "dropped_in_transport",
+  "phase": "lifted",
+  "sim_time_s": 116.29,
+  "cyl_final": [
+   0.0694,
+   0.1494,
+   0.8231
+  ]
+ }
+]
