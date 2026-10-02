@@ -1,5 +1,7 @@
 # Lucky Robots Pick & Place Challenge
 
+> **My solution:** the approach, results and how to run it are in [WRITEUP.md](WRITEUP.md). The rest of this README is the original challenge brief.
+
 ## Overview
 
 We're inviting you to tackle an open-ended robotics manipulation problem. This isn't a test with a correct answer — it's an opportunity for us to understand how you approach novel challenges, decompose complex problems, and iterate toward solutions.
