@@ -18,6 +18,14 @@ An episode succeeds when the cylinder is **on the blue table, tilted 10° or les
 
 The 450-episode figures pool nine seeds. On the three seeds the pipeline was developed against they read 97.3% and 90.7%, so the nine-seed numbers are the honest ones.
 
+### Demo
+
+| IK pipeline (`shipped`, seed 3, episode 0, 8x speed) | Direct HL (`hl_full`, seed 3, episode 0, 14x speed) |
+|---|---|
+| ![IK pipeline success](media/ik_success.gif) | ![Direct HL success](media/hl_success.gif) |
+
+Both are successful episodes from the regression tests, rendered with `eval/sweep.py --video`.
+
 ```
 g1-manipulation-challenge/
 ├── ik/
