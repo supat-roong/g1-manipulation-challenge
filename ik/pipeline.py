@@ -48,7 +48,7 @@ PICK_YAW = 0.35
 # tuned at. Deriving the stance from this to track a moved cylinder was tried
 # and REGRESSED everything (0/5, nominal included): the offset here comes from
 # the stance TARGET, but the passing run actually stood 4.2 cm off it, and the
-# grasp is tuned to that real geometry. Kept as telemetry only — closing this
+# grasp is tuned to that real geometry. Kept as telemetry only; closing this
 # gap needs the grasp to adapt to the measured offset, not a better stance.
 PICK_BODY_OFFSET = np.array([0.35, -0.21])
 PLACE_STANCE = ([-0.41, -0.35], -0.35)
@@ -129,8 +129,8 @@ CRADLE_AT = "own"
 # M1.8's gain: over the 36-cell seating grid, upright-and-seated went
 # 4/36 -> 12/36 (2/17 -> 10/20 of the cells still holding the cylinder at the
 # pre-place), and 11 of the 15 cells that touch down at <= 25 deg of tilt now
-# seat, against 1 of the 6 above 30. The M1.6 hypothesis this replaces — "the cradle
-# presents 20-28 deg and the press cannot right that" — is contradicted by the
+# seat, against 1 of the 6 above 30. The M1.6 hypothesis this replaces, "the cradle
+# presents 20-28 deg and the press cannot right that", is contradicted by the
 # same grid: the RIGID press tipped cells delivered at 2-5 deg of tilt just as
 # reliably as ones at 25, so the tilt was never the driver. What tips a rigidly
 # clamped cylinder is the release: with the finger pair still at 1.08 the
@@ -140,19 +140,19 @@ CRADLE_AT = "own"
 # pushed against removes the stored force before either stage runs.
 #
 # 0.5 sits in the middle of a flat plateau, not on a tuned peak: 0.15/0.3/0.4/
-# 0.5/0.6 score 13/12/12/14/12 of 36 and only 0.7 falls off (7/36) — measured
+# 0.5/0.6 score 13/12/12/14/12 of 36 and only 0.7 falls off (7/36), measured
 # before the crouch gate moved, so read the spread, not the absolute numbers.
 SEAT_GRIP = 0.5
 SEAT_S = 0.8
 # The place crouch. Standing residual above which the pelvis drops, and the
 # height it drops to. Both are parameters so `place_grid.py` can force the
 # crouch branch on a stance that does not need it (`--set
-# e2.PLACE_CROUCH_RESID=0.0`) and measure it — on the 30-episode sweep every
+# e2.PLACE_CROUCH_RESID=0.0`) and measure it: on the 30-episode sweep every
 # crouched place failed and every success was standing, 0/5 against 4/4.
 PLACE_CROUCH_RESID = 0.04
 PLACE_CROUCH_H = 0.65
 # Un-tuck clearance. The reach-out point is `pelvis + [0.34, -0.22, -0.05]`,
-# which at a standing pelvis puts the palm at z ~0.745 — and the cradle hangs
+# which at a standing pelvis puts the palm at z ~0.745, and the cradle hangs
 # the cylinder ~6.5 cm BELOW the palm, so its base passes within 2-4 cm of the
 # blue tabletop at 0.633 (+/-2 cm of randomization).
 # MEASURED AND REJECTED: clamping the reach-out z up so the cylinder's base
@@ -187,7 +187,7 @@ CARRY_CLEAR_TRACE = True
 BLUE_FOOTPRINT_PAD_M = 0.026
 # Release order. M1.7's staged thumb-then-pair, or both together.
 # MEASURED AND REJECTED: releasing symmetrically scores +2 cells on the seating
-# grid (16/36 vs 14) and is WORSE on the sweep — `reachable` over seeds 0/1/2
+# grid (16/36 vs 14) and is WORSE on the sweep: `reachable` over seeds 0/1/2
 # went successes 7 -> 4 and `dropped_in_transport` 3 -> 6. The grid's static
 # stance cannot see that, which is the one place its verdict and the sweep's
 # disagreed in this milestone; the sweep is the one that counts.
@@ -224,13 +224,13 @@ PLACE_UP_M = 0.02        # m, how far above rest the PLACE pose is commanded
 # was tuned with (GRASP_DZ, PREGRASP_BACK, the tilt sweep) therefore encoded a
 # rate-limiter artefact. M1.7 replaces the accident with a path whose shape is
 # PARAMETERS, all of them derived from two measured points on the pre-curled
-# hand plus the cylinder and tabletop geometry — not fitted to a sweep.
+# hand plus the cylinder and tabletop geometry, not fitted to a sweep.
 #
 # The two hand points are mesh vertices in the palm frame, expressed relative to
 # the GRASP CENTRE (the closed-hand fingertip centroid `grasp_center_offset`
 # returns, i.e. the point the palm target places on the cylinder), as (x, z):
 #   HAND_TIP  the deepest point of the whole hand at 0.25 pre-curl
-#   PAIR_TIP  the mean of the index and middle fingertip links — the pinch
+#   PAIR_TIP  the mean of the index and middle fingertip links: the pinch
 # A palm-frame (x, z) at tilt t maps to world up = -x sin t + z cos t and
 # horizontal forward = x cos t + z sin t, which is all the algebra below is.
 #
@@ -240,7 +240,7 @@ PLACE_UP_M = 0.02        # m, how far above rest the PLACE pose is commanded
 # 1. THE CAGE CANNOT ADMIT THE CYLINDER FROM THE FRONT, ONLY FROM ABOVE.
 #    The index/middle surfaces sit 1.3-2.0 cm from the grasp centre across the
 #    pinch, INSIDE the cylinder's 2.0 cm radius, so a straight-in approach at
-#    any tilt drives the fingers into the cylinder's side — that is M1.6's 9-10
+#    any tilt drives the fingers into the cylinder's side; that is M1.6's 9-10
 #    cm plough. The VERTICAL corridor over the cylinder's axis, by contrast, is
 #    empty at every tilt <= 25 deg: no hand vertex passes within 2.0 cm of the
 #    axis. So the last segment is a vertical descent, and its clearance
@@ -268,7 +268,7 @@ PLACE_UP_M = 0.02        # m, how far above rest the PLACE pose is commanded
 #    The table term wins everywhere (by 2.4-2.9 cm at every tilt), which is the
 #    honest statement of the conflict: on a table this hand grips a 7.4 cm
 #    cylinder with the LOWER finger and the thumb, and the upper finger clears
-#    the top. Both are still on the body — the lower fingertip lands within
+#    the top. Both are still on the body: the lower fingertip lands within
 #    0.5 cm of the cylinder's mid-height at every tilt, which is what the
 #    +/-0.8 cm window actually buys here.
 CYL_R = 0.02              # scene.xml: red_cylinder radius
@@ -277,7 +277,7 @@ CYL_R = 0.02              # scene.xml: red_cylinder radius
 # which swaps which finger hangs lowest: the middle fingertip for sgn<0, the
 # LONGER index fingertip for sgn>0, 1.6-1.8 cm deeper. Using one number for both
 # under-clamps the sgn>0 grasp height and the hand fouls the tabletop by 3-12 mm
-# — measured, and it was costing the search every small-tilt candidate at the
+# (measured), and it was costing the search every small-tilt candidate at the
 # inward cells (it fell through to a 45 deg tilt, whose pinch lands above the
 # cylinder's rim and captures nothing).
 HAND_TIP = {-1.0: (0.0851, -0.0282), 1.0: (0.0830, 0.0461)}
@@ -295,8 +295,8 @@ STANDOFF_UP = 0.02       # ... and above the apex, so the traverse arrives at
 # The quantity that decides the pick is the cylinder's IN-PALM DEPTH AT THE
 # CLOSE, and M1.8's cage holds it only over ~3-4.5 cm of it. Measured over the
 # widened grid x the friction axis (9 levels, 1.5-4.0), the DESCENT delivers the
-# cylinder to 4.3-4.8 cm of depth at EVERY friction — the pre-close state is
-# friction-invariant — and the CLOSE then moves it by -0.6 cm at mu >= 2.5 and
+# cylinder to 4.3-4.8 cm of depth at EVERY friction (the pre-close state is
+# friction-invariant) and the CLOSE then moves it by -0.6 cm at mu >= 2.5 and
 # -3.0 cm at mu <= 2.0, where the curling fingers drag it across the tabletop
 # and out the bottom of the window.
 #
@@ -331,7 +331,7 @@ APEX_ROUNDS = 3          # aim-and-correct rounds on the standoff and the apex
 # in the project; 20 deg 1/2; 25 deg 0/4; 35 deg 0/5; 45 deg 0/1. Ten episodes
 # chose a tilt >= 25 and NOT ONE captured, at a median IK residual of 0.0 mm.
 #
-# The tilt is not the mechanism, though — `dz` is, and the two are not the same
+# The tilt is not the mechanism, though: `dz` is, and the two are not the same
 # axis. `grasp_geometry` sets `dz` (how far above the cylinder's centre the pinch
 # is commanded) as the larger of "centre the pinch" and "clear the tabletop", and
 # the tabletop term depends on the CURL SIDE as strongly as on the tilt, because
@@ -344,8 +344,8 @@ APEX_ROUNDS = 3          # aim-and-correct rounds on the standoff and the apex
 #   tilt 35           4.0              5.3
 #   tilt 45           4.8              5.9
 #
-# So the (tilt, sgn) sweep order is NOT the `dz` order — (35, -1) at 4.0 cm is a
-# shallower pinch than (25, +1) at 4.5 — and the sweep's own preference was
+# So the (tilt, sgn) sweep order is NOT the `dz` order: (35, -1) at 4.0 cm is a
+# shallower pinch than (25, +1) at 4.5, and the sweep's own preference was
 # spending the good half of the (tilt x sgn) product on candidates that cannot
 # work.
 #
@@ -365,8 +365,8 @@ APEX_ROUNDS = 3          # aim-and-correct rounds on the standoff and the apex
 #     45  +1    6.14      0/8     0 mm
 #
 # Conditioned on the IK actually solving: 26/27 at dz <= 3.61 cm and 0/47 at
-# dz >= 4.18. The tilt is a CONFOUND — (25, -1) captures 8/8 at dz 3.17 while
-# (35, -1) captures 0/8 at dz 4.20 — and the cliff sits between 3.61 and 4.18,
+# dz >= 4.18. The tilt is a CONFOUND: (25, -1) captures 8/8 at dz 3.17 while
+# (35, -1) captures 0/8 at dz 4.20, and the cliff sits between 3.61 and 4.18,
 # which is the cylinder's own half-height. That is the whole mechanism:
 #
 #   THE PINCH MUST LAND BELOW THE CYLINDER'S TOP FACE.
@@ -375,14 +375,14 @@ APEX_ROUNDS = 3          # aim-and-correct rounds on the standoff and the apex
 # over the rim. `hand_geometry_report` shows what that looks like on the mesh: at
 # (20, +1) only `index_0` has a vertex inside the cylinder's radius and below its
 # top, with the thumb chain's lowest point 0.3 cm ABOVE the top face, so the
-# close lands one jaw on the body and the other on air — `close_contacts` reads
+# close lands one jaw on the body and the other on air: `close_contacts` reads
 # `['red_block<->index_1']`, a single contact with nothing opposing it. At
 # (45, -1) it is the mirror image with `middle_0/1`, and the close registers
 # zero contacts at all 8 cells.
 #
 # So the ceiling is not a tuned number, it is `CYL_HALF`. A candidate above it is
-# treated as INFEASIBLE, which hands the problem to the stance search — walk to
-# a stance from which a shallow pinch IS reachable — instead of accepting a
+# treated as INFEASIBLE, which hands the problem to the stance search (walk to
+# a stance from which a shallow pinch IS reachable) instead of accepting a
 # grasp that closes on air. It also makes the search ~2x cheaper, because four of
 # the ten candidates never get solved (measured 4023 -> 2112 solves per map).
 GRASP_DZ_MAX = CYL_HALF    # m; None = no ceiling (the M1.8 behaviour)
@@ -462,7 +462,7 @@ PICK_CROUCH_HEIGHTS = (0.70, 0.65)   # pelvis heights tried after standing fails
 STANCE_FWD = np.round(np.arange(0.22, 0.4501, 0.025), 4)
 STANCE_LAT = np.round(np.arange(-0.33, 0.0301, 0.03), 4)
 BASIN_NEED_M = 0.08     # margin to infeasibility we insist on if we can get it
-# Below this margin a standing clean-path basin is not a basin at all — it is a
+# Below this margin a standing clean-path basin is not a basin at all; it is a
 # point the gait cannot hit (it carries ~13 cm of error), and the padded-grid
 # margin of a lone feasible cell is exactly one grid ring, 2.5 cm. Only then is
 # the wider path-fouling map preferred; above it, path cleanliness still wins.
@@ -479,7 +479,7 @@ STANCE_CLEAR_M = 0.22   # keep the base this far outside a tabletop footprint
 # 107 -> 110 s, worst case 187 -> 210 s against the 300 s limit.
 MAX_PICK_LEGS = 4       # corrective legs before an honest `out_of_reach`
 # ------------------------------------------------------------------------- #
-# M3.2 — the palm's approach AZIMUTH, chosen on a measurement
+# M3.2: the palm's approach AZIMUTH, chosen on a measurement
 #
 # M3.1 made the approach SIDE a search dimension and left `never_captured` as
 # the binding failure: 25 of the 35 remaining `shipped_table` losses, against 0
@@ -567,12 +567,12 @@ RETREAT_M = 0.55        # staging distance back along the approach heading
 MIN_RETREAT_M = 0.45    # ... and the shortest retreat the gait can actually do
 
 # ===================================================================== #
-# M3.1 — the approach SIDE is a search dimension, and getting there
+# M3.1: the approach SIDE is a search dimension, and getting there
 # ===================================================================== #
 # S3.23: the 90.7% at shipped physics is position-limited, and the limit is
-# structural. `basin` searches cylinder-in-body offsets at ONE heading — the
+# structural. `basin` searches cylinder-in-body offsets at ONE heading (the
 # one the robot happens to be standing at, which is always the brown table's
-# west face — so past ~20 cm from nominal no feasible stance exists at any
+# west face), so past ~20 cm from nominal no feasible stance exists at any
 # crouch height and the episode aborts `out_of_reach` (56 of the 72
 # `shipped_table` failures; 28 of the 29 on seed 0 are `basin` returning None
 # on its first call, before a single corrective leg is spent).
@@ -588,7 +588,7 @@ MIN_RETREAT_M = 0.45    # ... and the shortest retreat the gait can actually do
 #   (+0.23, +0.00)      + 30      2.5 cm  | (+0.71, +0.00)     +210    12.5 cm
 #   (+0.23, +0.21)      +300     12.5 cm  | (+0.71, +0.21)     +210    12.5 cm
 #
-# — ten of the twelve cells have a 10-12.5 cm basin from SOME heading, i.e. the
+# Ten of the twelve cells have a 10-12.5 cm basin from SOME heading, i.e. the
 # capability was never a reach problem, only a heading problem. The two that do
 # not are the table's y-centreline at mid-x, and they are not a reach failure
 # either: standing `STANCE_CLEAR_M` clear of a tabletop edge that is 0.25 m from
@@ -598,7 +598,7 @@ MIN_RETREAT_M = 0.45    # ... and the shortest retreat the gait can actually do
 APPROACH_SEARCH = True        # behaviour-preservation switch: False = M1.14
 # World headings tried, 30 deg apart. Not "the four faces": the incumbent
 # stance's own heading is 20 deg off the west face normal, and the coverage
-# table above is won at +120/+150/+210/+300 as often as at an axis face — a
+# table above is won at +120/+150/+210/+300 as often as at an axis face: a
 # 0.5 m table with a 0.22 m stand-off is approached from its corners.
 APPROACH_YAWS_DEG = tuple(range(0, 360, 30))
 APPROACH_NEED_M = BASIN_NEED_M  # margin that ends the heading sweep early
@@ -613,7 +613,7 @@ APPROACH_NEED_M = BASIN_NEED_M  # margin that ends the heading sweep early
 #   6.1 - 8.0 cm     13     10      77%
 #   >  8.0 cm        24     18      75%
 #
-# — a cliff at 4 cm: 3/30 = 10% below it, 45/60 = 75% above, and 24 of the 30
+# A cliff at 4 cm: 3/30 = 10% below it, 45/60 = 75% above, and 24 of the 30
 # below it die `never_captured`, i.e. the arm flies a clean approach and closes
 # on nothing because the gait cannot land inside a one-cell basin. The number is
 # not new: `BASIN_CLEAN_FLOOR_M` is already 4 cm for exactly this reason ("the
@@ -640,7 +640,7 @@ NAV_BUDGET_S = 70.0           # sim seconds one route may spend
 # Transit clearance around a tabletop footprint. Deliberately SMALLER than
 # `STANCE_CLEAR_M`: a validated stance sits 0.22 m out, so a router that
 # inflated by 0.22 could not draw a segment to its own goal. It must stay above
-# 0.15, because that is what seals the inter-table gap — the tabletops are
+# 0.15, because that is what seals the inter-table gap: the tabletops are
 # 0.30 m apart in y, the robot is wider than that, and at clear > 0.15 the two
 # inflated boxes OVERLAP, so every candidate segment through the gap reads as a
 # collision. M1.5's "never path between the two tables" is then geometry
@@ -730,7 +730,7 @@ SEATED_TILT_DEG = 25.0   # in-grip tilt the compliant seat can still right
 #     Slowing the squeeze (`CLOSE_S` 0.8 -> 2.0), caging first (a partial grip of
 #     0.5/0.6/0.75 with a settle), and raising or lowering `CLOSE_GRIP` (0.9,
 #     1.05, 1.1, 1.15) all score 0-1/34 seated. Forcing each tilt at mu 1.7 is
-#     0/8 seated at 15, 20 AND 25 deg, against 5/8, 8/8, 8/8 at mu 3.0 — so it is
+#     0/8 seated at 15, 20 AND 25 deg, against 5/8, 8/8, 8/8 at mu 3.0, so it is
 #     not a geometry choice and no knob in `set_grip`'s reach touches it.
 # (b) HIGH FRICTION (mu >= 3.8) sticks the cylinder to the tabletop and the
 #     straight-up lift topples it instead of picking it up: at mu 4.0 the close is
@@ -845,7 +845,7 @@ CLOSE_SAMPLES = 8        # depth samples taken through the squeeze (M1.10)
 # measured four of those). It is a GATE ON THE SQUEEZE: stop advancing the grip
 # the moment the cylinder leaves the window, which is a no-op wherever the
 # incumbent already holds it.
-CLOSE_GATE_MIN_GRIP = 0.7  # never freeze below this — an open hand holds nothing
+CLOSE_GATE_MIN_GRIP = 0.7  # never freeze below this; an open hand holds nothing
 CLOSE_GATE_EVERY = 10      # physics steps between gate checks (0.05 s)
 
 
@@ -1021,7 +1021,7 @@ def randomize_scene(model, data, spawn_yaw=0.0, cyl_xy=None, cyl_shift=(0., 0.),
 
   `brown_dxy` / `blue_dxy` shift a table horizontally. The CYLINDER RIDES WITH
   THE BROWN TABLE: `cyl_xy` is drawn in the tabletop's own frame, so the two
-  axes stay orthogonal — "where the table is" and "where on the table the
+  axes stay orthogonal: "where the table is" and "where on the table the
   cylinder is" are separate questions, and a table shift can never place the
   cylinder off its own top. Nothing downstream is told a table moved; the place
   point, both nav keep-outs and the tabletop bounds all re-read `body_pos`
@@ -1055,7 +1055,7 @@ def randomize_scene(model, data, spawn_yaw=0.0, cyl_xy=None, cyl_shift=(0., 0.),
     model.geom_size[gt, 1] *= sy
     # Scaling geom_size alone leaves MuJoCo's cached broad-phase bounds
     # stale; with a scale factor > 1 the newly added footprint area has no
-    # collision until these are refreshed (shrinking is safe on its own —
+    # collision until these are refreshed (shrinking is safe on its own:
     # a stale larger bound only over-triggers narrow phase).
     model.geom_rbound[gt] = float(np.linalg.norm(model.geom_size[gt]))
     model.geom_aabb[gt, :3] = 0.0
@@ -1072,7 +1072,7 @@ def randomize_scene(model, data, spawn_yaw=0.0, cyl_xy=None, cyl_shift=(0., 0.),
     # refreshed above (verified: a cylinder dropped over the added area
     # falls straight through with only those three refreshed). Disabling
     # midphase makes collision fall back to exhaustive geom-pair testing,
-    # which is always correct — only episodes that actually request a
+    # which is always correct; only episodes that actually request a
     # footprint scale pay for it; the default (1., 1.) scale never reaches
     # this line.
     model.opt.disableflags |= mujoco.mjtDisableBit.mjDSBL_MIDPHASE
@@ -1116,7 +1116,7 @@ def randomize_scene(model, data, spawn_yaw=0.0, cyl_xy=None, cyl_shift=(0., 0.),
 
   # M1.10 decoupling instrument. `cyl_friction` sets the CYLINDER's geoms, and
   # MuJoCo combines an auto contact's friction as the element-wise MAX of the
-  # two geoms — so one number raises the cylinder<->tabletop pair and the
+  # two geoms, so one number raises the cylinder<->tabletop pair and the
   # cylinder<->finger pair together, and the sweep cannot tell which of them
   # drives the high-friction lift topple. Raising the table's or the hand's own
   # friction above a moderate cylinder separates them: with the cylinder at 3.0,
@@ -1322,13 +1322,13 @@ def horizontal_frame(runner, target_xy, tilt_deg, sep_axis_sign=1.0):
 
 
 # ======================================================================= #
-# M1.7 — the grasp path, as geometry
+# M1.7: the grasp path, as geometry
 # ======================================================================= #
 def _palm_up_fwd(v_xz, tilt_deg, zs=1.0):
   """World (up, horizontal-forward) components of a palm-frame (x, z) vector for
   a palm whose finger axis is `tilt_deg` below horizontal.
 
-  `zs = +1` for the curl side whose palm z points up, `-1` for the other one —
+  `zs = +1` for the curl side whose palm z points up, `-1` for the other one;
   the two are a 180 deg roll apart, so every z component changes sign. Read it
   off the frame with `np.sign(R[2, 2])`; do not pass it by hand.
   """
@@ -1346,7 +1346,7 @@ def grasp_geometry(tilt_deg, cyl_z, top_z, zs=1.0):
     apex_up        how far above the grasp pose the apex sits
     standoff_back  how far behind the apex the standoff sits, horizontally
 
-  Every term comes from HAND_TIP / PAIR_TIP and the scene, never from a sweep —
+  Every term comes from HAND_TIP / PAIR_TIP and the scene, never from a sweep;
   see the derivation at the top of this file.
   """
   tip_up, tip_fwd = _palm_up_fwd(HAND_TIP[1.0 if zs < 0 else -1.0],
@@ -1390,7 +1390,7 @@ def _line_over_table(model, p0, p1, top_z, clear, pad=0.0, steps=12):
   less than `clear` of vertical clearance anywhere along it?
 
   The footprint is read from the model every call (`brown_table_bounds`), never
-  hard-coded — the table can be shifted by `brown_dz`, and pricing geometry
+  hard-coded: the table can be shifted by `brown_dz`, and pricing geometry
   against a scene the file does not have is the single largest error this
   project has made. `pad` inflates the footprint outward, so a line that skims
   the edge counts as over it.
@@ -1407,7 +1407,7 @@ def _line_over_table(model, p0, p1, top_z, clear, pad=0.0, steps=12):
 
 
 def pick_azimuth(runner, search, cyl, T):
-  """`(verdict, R, tilt, sgn, resid, foul)` — the grasp frame at this stance.
+  """`(verdict, R, tilt, sgn, resid, foul)`: the grasp frame at this stance.
 
   Wraps the `evaluate` `replan_pick` used to call inline, so the accepted
   candidate and its telemetry are unchanged.
@@ -1445,7 +1445,7 @@ def fly_grasp_azimuths(runner, search, cyl, offset, top_z, R_s, tilt, sgn, T,
   """Fly the grasp path and record how far the base walked while it was flown.
   Returns `(R_s, tilt, sgn, G)`.
 
-  `apex_err_m` — the palm error at the apex, after the raise and the traverse —
+  `apex_err_m` (the palm error at the apex, after the raise and the traverse)
   separates the two populations completely, over the 300 M3.1 episodes of both
   presets:
 
@@ -1462,7 +1462,7 @@ def fly_grasp_azimuths(runner, search, cyl, offset, top_z, R_s, tilt, sgn, T,
   def drift():
     """How far the BASE has walked since the grasp was chosen. The standoff and
     the apex are WORLD points, so a base that walks away carries the whole path
-    with it — and the aim-and-correct rounds then chase a world target from a
+    with it, and the aim-and-correct rounds then chase a world target from a
     body that is still moving."""
     dyaw = float(ep.base_yaw(data)) - yaw0
     return (float(np.linalg.norm(data.qpos[:2] - base0)),
@@ -1481,11 +1481,11 @@ def fly_grasp_azimuths(runner, search, cyl, offset, top_z, R_s, tilt, sgn, T,
 
 
 # ======================================================================= #
-# M1.5 — search for a feasible grasp; if there is none, re-approach the
-#        widest feasible BASIN instead of the lowest-residual point.
+# M1.5: search for a feasible grasp; if there is none, re-approach the
+#       widest feasible BASIN instead of the lowest-residual point.
 # ======================================================================= #
 def body_offset(data, cyl_xy):
-  """Cylinder position in the robot's frame — the only pick geometry the grasp
+  """Cylinder position in the robot's frame: the only pick geometry the grasp
   actually cares about. A few cm of stance error moves it clean out of the
   graspable envelope, which is why it, not the stance error, is the quantity
   the planner closes the loop on."""
@@ -1513,7 +1513,7 @@ def _grid_margins(ok, dfwd, dlat):
   arrives somewhere usable is how much room the point has around it.
 
   The grid is padded with one ring of infeasible cells, so cells on the edge of
-  the searched region are rated conservatively — we have not shown that the
+  the searched region are rated conservatively; we have not shown that the
   region continues, and at the near edge it demonstrably does not (the table).
   """
   nf, nl = ok.shape
@@ -1537,8 +1537,8 @@ class GraspSearch:
   affordable inside every episode rather than a training-time luxury.
 
   Feasibility of a candidate is the worst IK residual over ALL THREE palm poses
-  the grasp actually flies — the standoff, the apex above the cylinder and the
-  grasp itself (M1.7 `grasp_path_targets`) — minimized over the same
+  the grasp actually flies: the standoff, the apex above the cylinder and the
+  grasp itself (M1.7 `grasp_path_targets`), minimized over the same
   (tilt, curl-side) sweep the executed grasp uses. Scoring fewer poses than the
   controller flies is how M1.5 accepted stances the approach could not be flown
   from; the pose list here and the pose list in `fly_grasp_path` come from the
@@ -1586,7 +1586,7 @@ class GraspSearch:
     Only `qpos[0:7]` changes for a candidate stance: the arm hangs off the
     torso, which hangs off the pelvis's free joint, so a candidate stance is
     exactly a rewrite of the free joint. The waist and leg joints keep their
-    measured values — for a crouch that is an approximation (the croucher also
+    measured values; for a crouch that is an approximation (the croucher also
     pitches the waist), which is why a requested crouch is re-verified against
     the real state after it executes rather than trusted from the grid."""
     p = self.probe
@@ -1617,7 +1617,7 @@ class GraspSearch:
     `tables=False` for the grasp pose itself: it sits 3.7 cm above the tabletop
     by construction and the lower finger legitimately reaches down past the
     cylinder's centre there. The pre-grasp is the pose that must clear the
-    table — that is the entire reason the approach is flown from above."""
+    table; that is the entire reason the approach is flown from above."""
     mujoco.mj_collision(self.model, d)
     for i in range(d.ncon):
       c = d.contact[i]
@@ -1639,8 +1639,8 @@ class GraspSearch:
 
     `az_deg` rotates the palm's in-plane approach direction about world z. The
     cylinder is axisymmetric, so which compass direction the pinch closes along
-    is free for the GRASP — every derived length in `grasp_geometry` is a
-    function of `tilt` and the curl side, and none of them of the azimuth — but
+    is free for the GRASP (every derived length in `grasp_geometry` is a
+    function of `tilt` and the curl side, and none of them of the azimuth), but
     it is emphatically not free for the ARM (see the M3.2 note above
     `GRASP_PRELIFT`). Rotating
     `d` by `a` yields exactly `Rz(a) @ R`, because both palm axes are built from
@@ -1648,7 +1648,7 @@ class GraspSearch:
     and the only downstream term that has to know is the place's carry frame.
     `az_deg = 0.0` reproduces the M3.1 candidate set element for element.
 
-    `dz` is the pinch height `grasp_geometry` will command for this candidate —
+    `dz` is the pinch height `grasp_geometry` will command for this candidate:
     the quantity capture actually tracks (M1.9). With `GRASP_DZ_MAX` the
     candidates above the
     measured capture ceiling are dropped, so a stance that offers only those
@@ -1674,7 +1674,7 @@ class GraspSearch:
     if GRASP_DZ_MAX is not None:
       # The ceiling is a statement about where the PINCH lands, not about `dz`
       # as a number: `GRASP_BACK_M` moves the palm back along a finger axis that
-      # is `tilt` below horizontal, which lifts the pinch by back*sin(tilt) —
+      # is `tilt` below horizontal, which lifts the pinch by back*sin(tilt):
       # 2.6 mm at 15 deg, 4.2 mm at 25. Charging that to the ceiling keeps M1.9's
       # invariant (the pinch below the cylinder's top face) exactly, instead of
       # letting a 1 cm aim bias smuggle the tallest candidate over it.
@@ -1689,7 +1689,7 @@ class GraspSearch:
     Since M1.7 the controller flies exactly these segments as planned Cartesian
     paths (`CART_SKIP_TAGS` is empty), and the executed deviation from the
     straight line between two consecutive waypoints is ~1 cm, so interpolating
-    them is now the RIGHT model rather than a stand-in for an arc — the mismatch
+    them is now the RIGHT model rather than a stand-in for an arc; the mismatch
     M1.6 recorded here is gone. It stays a preference, not a veto (see
     `evaluate`). Measured twice, before the paths were explicit: a raise whose arc jammed the
     index finger on the brown tabletop (palm stalled 12.5 cm short, the
@@ -1709,7 +1709,7 @@ class GraspSearch:
 
   def _resid(self, d, cyl, R, tilt, iters):
     """Worst IK residual over the three palm poses the grasp flies, plus whether
-    any of them — or any segment between them — fouls.
+    any of them (or any segment between them) fouls.
 
     The poses are solved in the order the controller flies them in reverse
     (grasp, then apex seeded from it, then standoff seeded from that), because a
@@ -1720,7 +1720,7 @@ class GraspSearch:
     p_s, p_a, p_g, _ = grasp_path_targets(cyl, R, tilt, self.offset, self.top_z)
     # solve_ms, not solve: M1.6 measured that a DLS residual is a property of
     # the SEED and put multi-start in the controller, but left the search on the
-    # single-seed solve — which reports 585-676 mm at the close cells (offset
+    # single-seed solve, which reports 585-676 mm at the close cells (offset
     # fwd 0.26) that the same arm reaches to 0.0 mm from another posture, i.e.
     # the search was calling reachable geometry infeasible. Retries fire only
     # when the first solve misses `GRASP_TOL`, so a feasible cell costs the same.
@@ -1742,7 +1742,7 @@ class GraspSearch:
       # their endpoints, which is what the controller's own waypoints do over
       # 7-11 cm. The RAISE is different: it is a ~25 cm move with a large
       # orientation change, and interpolating IT in joint space is the wrong
-      # model now that it is flown as a straight palm line — measured, at the
+      # model now that it is flown as a straight palm line: measured, at the
       # nominal stance the joint interpolant fouls the torso for EVERY
       # candidate, which left `evaluate` with nothing clean and made it fall
       # back on a genuinely fouling pose (executed standoff error 12.9 cm,
@@ -1828,7 +1828,7 @@ class GraspSearch:
 
     M3.1. The heading is tried in one order and one order only: the robot's
     CURRENT heading first, and if that yields any stance at all it is returned
-    unchanged — so every plan the incumbent pipeline made, it still makes, bit
+    unchanged, so every plan the incumbent pipeline made, it still makes, bit
     for bit (`_basin_at_yaw` is M1.14's `basin` verbatim). The heading sweep
     runs only where the incumbent aborted: 28 of the 29 `out_of_reach` episodes
     on `shipped_table` seed 0 are this function returning None on its first
@@ -1837,7 +1837,7 @@ class GraspSearch:
     `APPROACH_SEARCH = False` restores the M1.14 behaviour exactly.
 
     `need` is read at CALL time. As a default argument it was bound before
-    `_apply_env_overrides` could touch it — the same shape of bug that made
+    `_apply_env_overrides` could touch it, the same shape of bug that made
     `MAX_PICK_LEGS` a silent no-op for a dozen milestones (see `replan_pick`).
     """
     need = BASIN_NEED_M if need is None else float(need)
@@ -1859,8 +1859,8 @@ class GraspSearch:
   def approach(self, data, cyl, yaw, blocked, stand_h, heights, need, geo):
     """Choose an approach HEADING, then the widest basin at that heading.
 
-    Candidate headings are ranked by what they COST — the routed walk to a
-    representative stance plus `APPROACH_TURN_M` per 90 deg of turning — not by
+    Candidate headings are ranked by what they COST (the routed walk to a
+    representative stance plus `APPROACH_TURN_M` per 90 deg of turning), not by
     what they score, because the scores are nearly flat (ten of twelve
     tabletop cells offer 10-12.5 cm from some heading) while the walks differ
     by metres. Headings whose offset grid is entirely inside a tabletop
@@ -1907,7 +1907,7 @@ class GraspSearch:
     """Widest-margin (fwd, lat, pelvis height) stance for grasping `cyl`.
 
     Crouch heights are a LAST RESORT, tried only when standing has no feasible
-    cell at all — not merely when standing misses `need`. Measured reasons, both
+    cell at all, not merely when standing misses `need`. Measured reasons, both
     against the design's expectation that crouch is a first-class pick DoF:
 
       * the croucher drifts the base while it settles, by up to 13 cm of
@@ -1932,7 +1932,7 @@ class GraspSearch:
     rather than leave standing, and only drop the pelvis if standing has
     nothing at all.
 
-    Returns a dict, or None if nothing anywhere is feasible AT THIS HEADING —
+    Returns a dict, or None if nothing anywhere is feasible AT THIS HEADING,
     which is where `basin` takes over and sweeps the heading (M3.1).
     """
     dfwd = float(STANCE_FWD[1] - STANCE_FWD[0])
@@ -1954,12 +1954,12 @@ class GraspSearch:
         if hi == 0:
           # M1.7 REGRESSION, FIXED HERE. Three-pose feasibility narrowed the
           # clean standing basin to 1-4 cells on `spec`, and this returned the
-          # first standing map with ANY cells — so it preferred a 1-cell clean
+          # first standing map with ANY cells, so it preferred a 1-cell clean
           # point over a wide path-fouling one. The gait carries ~13 cm of error,
           # so a 1-cell basin is a stance it will miss; the episode spent its
           # corrective legs and ended `out_of_reach` (6 -> 8 on `spec` seed 0).
           #
-          # The repair is deliberately NARROW — only a clean map that is not a
+          # The repair is deliberately NARROW: only a clean map that is not a
           # basin at all falls through. Falling through whenever the clean map
           # merely misses `need` was also measured, and it buys `tipped_at_place`
           # 5/30 -> 2/30 on `reachable` by converting three episodes that reached
@@ -2019,7 +2019,7 @@ def _table_blocker(geo, clear=STANCE_CLEAR_M):
 
 
 # ======================================================================= #
-# M3.1 — routing around the outside of the two tables
+# M3.1: routing around the outside of the two tables
 # ======================================================================= #
 def _nav_boxes(geo, clear=None):
   """Both tabletop footprints as (centre_xy, half_xy), inflated by `clear`."""
@@ -2038,7 +2038,7 @@ def _in_box(xy, box):
 def _seg_hits_box(a, b, box, eps=1e-4):
   """Does the segment a->b pass through the box's INTERIOR? (slab clipping)
 
-  Grazing along a face is allowed — the goal of a route leg is frequently a
+  Grazing along a face is allowed; the goal of a route leg is frequently a
   stance that sits exactly on the inflated boundary.
   """
   c, hh = box
@@ -2078,7 +2078,7 @@ def nav_path(start_xy, goal_xy, geo, clear=None):
   """Waypoints (goal last, start excluded) whose straight legs stay outside
   both inflated tabletop footprints.
 
-  A visibility graph over the boxes' corners plus Dijkstra — ten nodes, so it
+  A visibility graph over the boxes' corners plus Dijkstra: ten nodes, so it
   costs nothing and it is exact for two convex obstacles. It returns `[goal]`
   whenever the straight segment is already clear, which is why every route the
   incumbent pipeline flies is left untouched.
@@ -2143,7 +2143,7 @@ def route_to_pose(runner, goal_xy, goal_yaw, geo, tag="route",
                   budget_s=None, stage_m=None):
   """Walk to (goal_xy, goal_yaw) around the outside of both tables.
 
-  A sequence of STRAIGHT legs with rotator bursts between them — never an arc
+  A sequence of STRAIGHT legs with rotator bursts between them, never an arc
   and never a strafe. That shape is forced by two measurements: the walker
   crabs (0.30 m in 21.5 s for a leg with a lateral component, against 0.5 m in
   1.3-2.4 s straight ahead), and it is dead for in-place yaw, so the rotator is
@@ -2154,7 +2154,7 @@ def route_to_pose(runner, goal_xy, goal_yaw, geo, tag="route",
   flown as a fixed waypoint list. That is not a refinement: a leg lands up to
   0.20 m short of its waypoint and the rotator then drifts another 8-35 cm, so
   a fixed list has the next leg starting from somewhere the plan never
-  considered — measured, three routes cut the brown table's north-west corner
+  considered: measured, three routes cut the brown table's north-west corner
   and jammed against its long edge for 80 s.
 
   The last leg is the docking pattern `corrective_leg` and `walk_to_pose`
@@ -2275,7 +2275,7 @@ def _pose_route_clear(runner, goal_xy, goal_yaw, geo):
 
   It replicates `walk_to_pose`'s own branch choice rather than guessing, so
   that "the straight route is clear" means exactly "the legs walk_to_pose would
-  fly are clear" — and when it is true the incumbent call is made unchanged.
+  fly are clear", and when it is true the incumbent call is made unchanged.
   """
   data = runner.data
   goal_xy = np.asarray(goal_xy, float)[:2]
@@ -2301,8 +2301,8 @@ def _pose_route_clear(runner, goal_xy, goal_yaw, geo):
 def walk_to_pose_around(runner, goal_xy, goal_yaw, geo, tag="route"):
   """`base.walk_to_pose`, but routed around the tables when it has to be.
 
-  When the straight route is clear — every leg the incumbent pipeline flies,
-  including the whole `shipped` preset — this IS `base.walk_to_pose`, called with
+  When the straight route is clear (every leg the incumbent pipeline flies,
+  including the whole `shipped` preset), this IS `base.walk_to_pose`, called with
   the same arguments. Only a pose on the far side of a table takes the router.
   """
   if not APPROACH_SEARCH or _pose_route_clear(runner, goal_xy, goal_yaw, geo):
@@ -2312,7 +2312,7 @@ def walk_to_pose_around(runner, goal_xy, goal_yaw, geo, tag="route"):
 
 
 def corrective_leg(runner, base_xy, yaw):
-  """Walk back and re-approach — the only correction the gait can execute.
+  """Walk back and re-approach: the only correction the gait can execute.
 
   A 5-10 cm nudge is physically unavailable: the walker deadbands below
   ~0.25-0.3 m/s, so short hops step in place and move nothing. So the
@@ -2325,7 +2325,7 @@ def corrective_leg(runner, base_xy, yaw):
   not simply behind the current pose, and `L` is stretched so the retreat is
   still a real leg. That detail is load-bearing: staging off the line leaves a
   lateral component in the final leg, and a leg that is 15 deg off the heading
-  makes the walker crab — measured 0.30 m of progress in 21.5 s, versus 0.5 m
+  makes the walker crab: measured 0.30 m of progress in 21.5 s, versus 0.5 m
   in 1.3-2.4 s for the same command straight ahead. The lateral part of the
   correction is spent on the retreat instead, where accuracy does not matter.
   """
@@ -2396,7 +2396,7 @@ def replan_pick(runner, search, geo, T, max_legs=None):
     # M3.2: `pick_azimuth` wraps the `evaluate` this used to call inline. It
     # returns the same candidate whenever the controller can fly its path, so
     # the accepted grasp and the telemetry are unchanged on every episode whose
-    # plan is flyable — 149 of 150 on `shipped`.
+    # plan is flyable: 149 of 150 on `shipped`.
     verdict, R, tilt, sgn, resid, foul = pick_azimuth(runner, search, cyl, T)
     print(f"  [replan {leg}] offset {np.round(off, 3).tolist()} pelvis z "
           f"{float(data.qpos[2]):.3f} best resid {resid * 1000:5.1f} mm "
@@ -2423,7 +2423,7 @@ def replan_pick(runner, search, geo, T, max_legs=None):
       # ROUTE, not a leg: the two tabletops are 0.30 m apart and the robot is
       # wider than the gap, so it has to go around the outside.
       #
-      # M3.4. Unless it is not on another side at all — see
+      # M3.4. Unless it is not on another side at all; see
       # `REFACE_NEAR_YAW_DEG`. `approach` quantizes the heading to 30 deg, so
       # the plan it returns after a reface is routinely the heading the robot
       # already holds, and charging that to the face budget aborted the episode
@@ -2582,8 +2582,8 @@ def pinch_geometry(runner, offset=None):
   """Where the cylinder sits relative to the pinch, right now.
 
   M1.10 instrumentation. `depth_m` is the SAME quantity M1.8 called in-palm
-  depth and `HybridRunner.slip` returns — the cylinder centre's component along
-  the palm's finger axis — so these numbers are directly comparable with the
+  depth and `HybridRunner.slip` returns (the cylinder centre's component along
+  the palm's finger axis), so these numbers are directly comparable with the
   M1.8 cage envelope (holds over ~3-4.5 cm) and M1.9's post-close depths. What
   is new is (a) reading it BEFORE the close, where the M1.9 telemetry only had
   it after, and (b) the lateral offset of the cylinder from the pinch CENTRE,
@@ -2638,15 +2638,15 @@ def fly_grasp_path(runner, R_s, tilt, offset, top_z, verbose=True,
 
   # M3.2. LIFT CLEAR OF THE TABLETOP BEFORE TRAVERSING TO THE STANDOFF.
   #
-  # The raise is a straight palm line from wherever the arm hangs — palm z 0.665,
-  # BELOW the 0.733 tabletop — to a standoff at z ~0.90. When the standoff is
+  # The raise is a straight palm line from wherever the arm hangs (palm z 0.665,
+  # BELOW the 0.733 tabletop) to a standoff at z ~0.90. When the standoff is
   # over the table that line crosses the tabletop, and the fingers reach 2-4 cm
   # below the palm, so the hand drags. Measured on the M3.1 capture failures,
   # second by second: 3.2 cm of base drift at t=7 s, then `table <->
   # right_hand_index_0_link` with 0.374 rad of joint tracking error, base
   # velocity spiking to 0.27 m/s, and 7.4 -> 23.1 -> 39.4 cm of drift in two
   # seconds. **The hand pushes on the table, the reaction force perturbs the
-  # standing controller, and the robot STEPS AWAY** — and the standoff and apex
+  # standing controller, and the robot STEPS AWAY**, and the standoff and apex
   # are world points, so they are then out of reach and the aim-and-correct
   # rounds reconfigure the arm onto a branch 29 cm clear of where it was going.
   #
@@ -2820,7 +2820,7 @@ def hand_geometry_report(runner, cyl):
   out["hand_z_lo_rel_centre"] = round(lo_all, 4)
   out["hand_axis_dist_min"] = round(near_all, 4)
   # How many links have any mesh vertex inside the cylinder's radius AND below
-  # its top face — i.e. actually alongside the body rather than over the rim.
+  # its top face, i.e. actually alongside the body rather than over the rim.
   out["links_on_body"] = sorted(
     k for k, v in out.items()
     if isinstance(v, dict) and v["axis_dist_min"] < CYL_R + 0.004
@@ -2847,8 +2847,8 @@ def squeeze(runner, target, seconds, samples=CLOSE_SAMPLES, offset=None,
   """`Runner.set_grip(target, seconds)`, step for step, with the in-palm depth
   sampled through the ramp.
 
-  M1.10 instrumentation. The loop is `set_grip`'s own loop — same step count,
-  same linear interpolation of both grip channels — because the alternative
+  M1.10 instrumentation. The loop is `set_grip`'s own loop (same step count,
+  same linear interpolation of both grip channels) because the alternative
   (calling `set_grip` on sub-targets) rounds `int(seconds / dt)` per sub-ramp
   and comes out 392 steps instead of 399, which this pipeline is chaotic enough
   to notice: it flipped a grid cell from a clean lift to a 90 deg topple.
@@ -2866,7 +2866,7 @@ def squeeze(runner, target, seconds, samples=CLOSE_SAMPLES, offset=None,
     runner.grip_alpha_f = a0_f + (target - a0_f) * frac
     runner.step_once()
     # The gate. Checked on the SAME schedule regardless of whether it can fire,
-    # and it only ever stops the grip advancing — the step count, and so the
+    # and it only ever stops the grip advancing; the step count, and so the
     # timing of everything downstream, is identical either way.
     if (stop["frac"] is None and (depth_min is not None or tilt_max is not None)
         and (i + 1) % CLOSE_GATE_EVERY == 0
@@ -3045,7 +3045,7 @@ def publish_close_deltas(runner, depth_pre, depth_squeeze, depth_close):
 
 
 def cradle_frame(R_s, tilt):
-  """`(R_c, R_hold, roll_deg)` — the carry orientation and what is flown to it.
+  """`(R_c, R_hold, roll_deg)`: the carry orientation and what is flown to it.
 
   The cradle roll is a rotation of the palm about the HELD CYLINDER'S axis
   (palm z), by `-(tilt + CRADLE_PITCH)`. It is computed in three places now
@@ -3129,7 +3129,7 @@ def stow_arm(runner, up=0.15):
 
 def pick_only(runner, geo, place_cyl=None, force=None):
   """Settle, choose a grasp from the pose the robot is standing in, fly the
-  explicit path, close and lift — no walking, no replanning, no carry.
+  explicit path, close and lift: no walking, no replanning, no carry.
 
   This is what the static pick grid (on the `dev` branch) measures: the grasp alone, over a grid
   of cylinder-in-body offsets, from a static stance. It shares `fly_grasp_path`
@@ -3142,7 +3142,7 @@ def pick_only(runner, geo, place_cyl=None, force=None):
   # `grasp_center_offset` closes the hand in free air to find the pinch centre.
   # The pipeline does that at the spawn, a metre from the table; a static-stance
   # harness starts already at the table, so the cylinder is parked out of reach
-  # and dropped into place afterwards — otherwise the measurement itself bats it
+  # and dropped into place afterwards; otherwise the measurement itself bats it
   # (measured: tilt 19 -> 62 deg before the grasp had even been chosen).
   offset = runner.grasp_center_offset()
   if place_cyl is not None:
@@ -3205,7 +3205,7 @@ def pick_only(runner, geo, place_cyl=None, force=None):
 
 
 # ======================================================================= #
-# M1.8 — the place, as a stage of its own
+# M1.8: the place, as a stage of its own
 # ======================================================================= #
 def on_blue(geo, p):
   """Cylinder resting inside the blue tabletop footprint, at seat height."""
@@ -3392,7 +3392,7 @@ def place_object(runner, geo, R_c, T, phase=None):
   un-tuck, search the tabletop for a reachable point, crouch if standing
   cannot reach it, translate above it, descend to contact, seat, release in
   stages, retract. Extracted from `run_once` so the static place grid (`dev` branch)
-  measures THIS code rather than a copy of it — the same relationship
+  measures THIS code rather than a copy of it, the same relationship
   `pick_only` has with `fly_grasp_path`.
   """
   data, ik = runner.data, runner.ik
@@ -3415,7 +3415,7 @@ def place_object(runner, geo, R_c, T, phase=None):
 
   # ================= 4. PLACE (crouch only if IK says so) ==============
   def measure_hold():
-    """Cylinder pose in the palm frame — re-measure after any slip."""
+    """Cylinder pose in the palm frame; re-measure after any slip."""
     p = data.site_xpos[ik.site_id].copy()
     R = data.site_xmat[ik.site_id].reshape(3, 3).copy()
     return R.T @ (runner.cyl_pos() - p)
@@ -3503,7 +3503,7 @@ def place_object(runner, geo, R_c, T, phase=None):
   stage("untucked")
 
   # 4b. choose the place point; crouch only if standing can't reach it
-  R_p = R_c  # carry orientation held all the way down — no re-aim, no spin
+  R_p = R_c  # carry orientation held all the way down: no re-aim, no spin
   place_target, resid = best_place_point(hold, R_p, "standing")
   crouched = False
   T["place_force_crouch"] = False
@@ -3519,7 +3519,7 @@ def place_object(runner, geo, R_c, T, phase=None):
     runner.report("crouched")
     stage("crouched")
   else:
-    print("[8 CROUCH] not needed — reachable standing")
+    print("[8 CROUCH] not needed: reachable standing")
   T["crouched"] = crouched
   T["place_target"] = [round(float(v), 4) for v in place_target]
   T["place_resid_m"] = round(float(resid), 4)
@@ -3582,7 +3582,7 @@ def place_object(runner, geo, R_c, T, phase=None):
     runner.run(0.5)
     runner.report("fingers open")
     stage("fingers_open")
-  # retract straight up — pulling back along the fingers would sweep the
+  # retract straight up; pulling back along the fingers would sweep the
   # just-placed cylinder off the table
   palm_now = data.site_xpos[ik.site_id].copy()
   runner.move_tag = "retract"
@@ -3605,11 +3605,11 @@ def run_once(spawn=(-1.2, 0.15), cyl_shift=(0.0, 0.0), video="v2_run.mp4",
              snapshots=None):
   """One full pick & place attempt under the given randomization.
 
-  Returns a telemetry dict: `phase`/`phase_idx` (furthest milestone reached —
+  Returns a telemetry dict: `phase`/`phase_idx` (furthest milestone reached;
   partial progress is real progress), `success` (spec 8.2: upright <= 10 deg,
   at rest on the blue table for 2 s), placement error, max tilt, the in-palm
   slip trace, timings, and the legacy `ok` = {pick, transport, place} flags.
-  `video=None` runs headless (no renderer, no frames) — use it for sweeps.
+  `video=None` runs headless (no renderer, no frames); use it for sweeps.
   """
   t_wall = time.time()
   model, data, ctrl = ep.build_sim(spawn=spawn)
@@ -3674,7 +3674,7 @@ def run_once(spawn=(-1.2, 0.15), cyl_shift=(0.0, 0.0), video="v2_run.mp4",
 
     # ================= 1. APPROACH (hybrid pose control) =================
     def cyl_in_body():
-      """Cylinder position in the robot's frame — what the grasp actually
+      """Cylinder position in the robot's frame: what the grasp actually
       cares about (a few cm of stance error moves it out of the graspable
       envelope)."""
       return body_offset(data, runner.cyl_pos())
@@ -3751,7 +3751,7 @@ def run_once(spawn=(-1.2, 0.15), cyl_shift=(0.0, 0.0), video="v2_run.mp4",
     if pick is None:
       T["abort"] = "no_grasp_ik"   # -> out_of_reach, and honestly so
       print(f"ABORT: no reachable side grasp after {T.get('pick_legs', 0)} "
-            f"corrective leg(s) — this cylinder needs a different approach "
+            f"corrective leg(s); this cylinder needs a different approach "
             f"side (out of scope for M1.5)")
       return
     R_s, tilt, sgn = pick
@@ -3773,7 +3773,7 @@ def run_once(spawn=(-1.2, 0.15), cyl_shift=(0.0, 0.0), video="v2_run.mp4",
     R_c, R_hold, roll_deg = cradle_frame(R_s, tilt)
     # M3.2: and the palm's approach AZIMUTH is a second world yaw baked into the
     # same frame. `R_s -> Rz(az) R_s` exactly, and `cradle_frame` rotates about
-    # an axis it takes FROM `R_s`, so `R_c -> Rz(az) R_c` exactly too — which
+    # an axis it takes FROM `R_s`, so `R_c -> Rz(az) R_c` exactly too, which
     # means the place has to fly `az` of extra body-relative re-aim on top of
     # the heading's. M3.1's fix corrects for the heading alone; the complete
     # quantity is the heading PLUS the azimuth, and folding it in here is an
@@ -3868,7 +3868,7 @@ def run_once(spawn=(-1.2, 0.15), cyl_shift=(0.0, 0.0), video="v2_run.mp4",
     # 18 cm above the pelvis, not 12: the cradle holds the cylinder 6.5 cm BELOW
     # the palm (the pinch grips it above its mid-height, so it hangs), and the
     # pelvis sags up to 2.5 cm under the loaded walk, so pelvis + 12 cm arrived
-    # at the place stance with the cylinder 1.8-4.0 cm over its rest height —
+    # at the place stance with the cylinder 1.8-4.0 cm over its rest height,
     # 5 cm from scraping the tabletop and either side of the 3 cm the
     # `transported` phase asks for, on a grip that was demonstrably intact
     # (9 finger contacts, in-palm slip frozen at 3.6 cm). This is a carry
@@ -3885,7 +3885,7 @@ def run_once(spawn=(-1.2, 0.15), cyl_shift=(0.0, 0.0), video="v2_run.mp4",
 
     # M3.1: the pick may have happened on the far side of the brown table, in
     # which case the straight line to the place stance goes THROUGH it. When it
-    # does not — every episode the incumbent pipeline ever flew — this is
+    # does not (every episode the incumbent pipeline ever flew), this is
     # `base.walk_to_pose(runner, *PLACE_STANCE)` unchanged.
     ctx = _command_ctx(runner, geo, "place")
     T["ctx_place"] = _ctx_record(ctx)
@@ -3994,7 +3994,7 @@ def run_once(spawn=(-1.2, 0.15), cyl_shift=(0.0, 0.0), video="v2_run.mp4",
 
 
 # ======================================================================= #
-# M1.12 — constant overrides from the environment
+# M1.12: constant overrides from the environment
 # ======================================================================= #
 # `eval/sweep.py` has no `--set` (and its randomization and taxonomy are off
 # limits), so measuring a variant end to end otherwise means editing a default

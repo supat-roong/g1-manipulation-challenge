@@ -16,7 +16,7 @@ Determinism: episode i draws from `default_rng([seed, i])`, so the scene for a
 given (seed, i) is identical no matter what N or --jobs are, and workers never
 share a stream. Physics itself is deterministic for a fixed scene.
 
-Video is OFF by default — it dominates the wall clock (an episode is ~6 s
+Video is OFF by default: it dominates the wall clock (an episode is ~6 s
 headless) and a parallel sweep would fight over the frame files.
 """
 
@@ -66,7 +66,7 @@ PRESETS = {
   },
   # The hardest LEGITIMATE test: shipped physics, but the cylinder may sit
   # anywhere on the brown tabletop interior (not just near nominal). This is
-  # `spec`'s spatial randomization with `shipped`'s physics — the two were
+  # `spec`'s spatial randomization with `shipped`'s physics; the two were
   # previously confounded, so no clean number existed for it.
   "shipped_table": {
     "spawn_xy_m": 0.15, "spawn_yaw_deg": 15.0,
@@ -75,14 +75,14 @@ PRESETS = {
     "table_dxy_m": 0.0,
   },
   # THE TASK AS SHIPPED. `scene.xml` fixes the cylinder's friction at
-  # `3 0.1 0.01` (mu = 3.0), its density at 100, and both table heights — all
+  # `3 0.1 0.01` (mu = 3.0), its density at 100, and both table heights, all
   # unchanged since the fork point 0e9d1f9. The mass/friction/table ranges in
   # the presets below are OURS, not the challenge's, and pricing the pipeline
   # against them was a self-inflicted difficulty: mu is drawn from [1.5, 4.0]
   # while the shipped value 3.0 is the band the pipeline handles best.
-  # This preset keeps the legitimate robustness probe — the robot does not
+  # This preset keeps the legitimate robustness probe (the robot does not
   # start in a guaranteed pose, and the cylinder may sit anywhere near
-  # nominal — and restores every physical property the repo shipped with.
+  # nominal) and restores every physical property the repo shipped with.
   "shipped": {
     "spawn_xy_m": 0.15, "spawn_yaw_deg": 15.0,
     "cyl_mode": "near", "cyl_radius_m": 0.10,
@@ -90,7 +90,7 @@ PRESETS = {
     "table_dxy_m": 0.0,
   },
   # Spec spawn/mass/friction/table randomization, but the cylinder stays
-  # within reach of the fixed pick stance — isolates grasp robustness from
+  # within reach of the fixed pick stance, which isolates grasp robustness from
   # the "the stance is hard-coded" failure that swamps the full preset.
   "reachable": {
     "spawn_xy_m": 0.15, "spawn_yaw_deg": 15.0,
@@ -209,7 +209,7 @@ def table_bounds(margin):
 def make_episode(idx, seed, preset, bounds, cyl_nominal, nominal=False):
   """Draw one episode's scene from an independent, reproducible stream.
 
-  `nominal=True` returns the unperturbed scene instead — a control episode, so
+  `nominal=True` returns the unperturbed scene instead: a control episode, so
   "did this change break the case the FSM was tuned on?" is one command.
   """
   import numpy as np
@@ -293,7 +293,7 @@ def classify(rec):
   """Exactly one label per episode. Ordered rules, first match wins.
 
   `robot_fell` and `timeout` come first because they abort the episode
-  wherever it was — the phase reached says nothing about *why* it stopped.
+  wherever it was; the phase reached says nothing about *why* it stopped.
   Everything after that is read off the furthest phase reached:
 
     no side-grasp IK solution  -> out_of_reach   (geometry, not control)
@@ -417,7 +417,7 @@ def summarize(records, meta):
     w(f"{left:<38s}{right}")
   n_err = sum(1 for r in records if r.get("error"))
   if n_err:
-    w(f"  ({n_err} episode(s) raised an exception — see the logs)")
+    w(f"  ({n_err} episode(s) raised an exception; see the logs)")
   w("")
   w("  Metric distributions            n   mean  median     p10     p90     max")
   metrics = [

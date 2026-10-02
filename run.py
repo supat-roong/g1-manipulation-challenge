@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""G1 Table Red Block — standalone MuJoCo scene with walker + reacher policies.
+"""G1 Table Red Block: standalone MuJoCo scene with walker + reacher policies.
 
 Converted from the LuckyEngine G1-Table-Red-Block.hscene. Runs the G1 robot
 with trained Walker/Croucher/Rotator/Reacher ONNX policies in a scene with
@@ -119,7 +119,7 @@ class G1Controller:
     self.last_arm_action = np.zeros(7, dtype=np.float32)
     self.last_arm_target = None
     self.arm_max_delta = 0.012
-    # Frozen arm position — holds the last reach position when switching to walk
+    # Frozen arm position: holds the last reach position when switching to walk
     self.frozen_arm_pos = None  # None = use defaults, array = hold position
 
     self.last_action = np.zeros(29, dtype=np.float32)
@@ -163,8 +163,8 @@ class G1Controller:
     # `joint_qpos_indices` keeps that positional map, because the BODY experts
     # (walker / rotator / croucher) were trained with the arms at their default
     # pose: reading zeros there holds them in the distribution they know.
-    # Feeding them the true right-arm angles — which this pipeline swings ~60
-    # degrees during a grasp — takes them off-distribution and collapses the
+    # Feeding them the true right-arm angles (which this pipeline swings ~60
+    # degrees during a grasp) takes them off-distribution and collapses the
     # scripted pipeline from 48/50 to 0/20 on the same episodes (4 falls,
     # 16 never_captured; `eval/results/jmapfix_shipped_n20_seed3_*`).
     #
@@ -267,15 +267,15 @@ class G1Controller:
         self.reach_target[:] = [0.3, -0.2, 0.2]
         self.reach_orientation[:] = 0.0
         self.last_arm_target = self._get_arm_joint_positions() + self.arm_default_pos
-        print("[MODE] >>> REACH — arrows move hand, ;/' = up/down, \\ = reset target")
+        print("[MODE] >>> REACH: arrows move hand, ;/' = up/down, \\ = reset target")
       else:
         self.input_mode = "walk"
         self.reach_active = False
-        # Freeze arm where it is — read current right arm joint positions
+        # Freeze arm where it is; read current right arm joint positions
         if self.last_arm_target is not None:
           self.frozen_arm_pos = self.last_arm_target.copy()
         self.last_arm_target = None
-        print("[MODE] >>> WALK — arm holds position, arrows move robot")
+        print("[MODE] >>> WALK: arm holds position, arrows move robot")
       return
 
     # Route keys based on mode
@@ -401,7 +401,7 @@ class G1Controller:
 
   # --- Step ---
   def step(self) -> np.ndarray:
-    # Build walker observation (always runs — keeps legs stable)
+    # Build walker observation (always runs; keeps legs stable)
     lin_vel, ang_vel = self._get_base_velocities()
     proj_gravity = self._get_projected_gravity()
     joint_pos = self._get_joint_positions()
@@ -482,7 +482,7 @@ class G1Controller:
 
   def _cache_finger_actuators(self):
     """Cache right hand finger actuator IDs and their closed targets."""
-    # (actuator_id, closed_position) — targets at joint limits for a power grasp
+    # (actuator_id, closed_position): targets at joint limits for a power grasp
     self.right_finger_actuators = []
     finger_closed = {
       "right_hand_thumb_0_joint":  0.8,     # curl thumb inward
@@ -508,7 +508,7 @@ class G1Controller:
 
 
 # --------------------------------------------------------------------------- #
-# Camera renderer (uses mujoco.Renderer — reliable offscreen rendering)
+# Camera renderer (uses mujoco.Renderer: reliable offscreen rendering)
 # --------------------------------------------------------------------------- #
 class CameraRenderer:
   """Offscreen renderer for robot-mounted cameras using mujoco.Renderer."""
@@ -554,7 +554,7 @@ def set_armature(model, joint_names):
 # Main
 # --------------------------------------------------------------------------- #
 def main():
-  parser = argparse.ArgumentParser(description="G1 Table Red Block — MuJoCo standalone")
+  parser = argparse.ArgumentParser(description="G1 Table Red Block: MuJoCo standalone")
   parser.add_argument("--no-cameras", action="store_true", help="Disable camera windows")
   parser.add_argument("--cam-fps", type=int, default=10, help="Camera render FPS (default: 10)")
   args = parser.parse_args()
@@ -569,12 +569,12 @@ def main():
   xml_path = SCRIPT_DIR / "scene.xml"
   print(f"Loading scene: {xml_path}")
   model = mujoco.MjModel.from_xml_path(str(xml_path))
-  model.opt.timestep = 0.005  # 200 Hz — must match training
+  model.opt.timestep = 0.005  # 200 Hz; must match training
   set_armature(model, joint_names)
 
   data = mujoco.MjData(model)
 
-  # Init robot pose — spawn behind the table, facing it
+  # Init robot pose: spawn behind the table, facing it
   data.qpos[0] = -0.6  # x: back from table
   data.qpos[2] = 0.76
   data.qpos[3:7] = [1, 0, 0, 0]
@@ -626,7 +626,7 @@ def main():
       cam_renderer.render("wrist_cam")
       print("  Camera renderer ready (head_cam, wrist_cam).")
     except ImportError:
-      print("  [WARN] opencv-python not installed — camera windows disabled.")
+      print("  [WARN] opencv-python not installed; camera windows disabled.")
       print("  Install with: pip install opencv-python")
       show_head_cam = show_wrist_cam = False
     except Exception as e:
@@ -635,7 +635,7 @@ def main():
 
   # Print controls
   print(f"\n{'='*50}")
-  print("G1 TABLE RED BLOCK — MuJoCo Standalone")
+  print("G1 TABLE RED BLOCK: MuJoCo Standalone")
   print(f"{'='*50}")
   print("  .          Toggle WALK / REACH mode")
   print("  --- WALK mode ---")
@@ -675,7 +675,7 @@ def main():
   print("Launching MuJoCo viewer...")
 
   with viewer.launch_passive(model, data, key_callback=on_key) as v:
-    # Reset clock AFTER viewer opens — prevents catchup lag burst on startup
+    # Reset clock AFTER viewer opens: prevents catchup lag burst on startup
     t0 = time.time()
     while v.is_running():
       # Handle spacebar reset

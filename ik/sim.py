@@ -47,10 +47,10 @@ CYL_HALF = 0.037
 # servo (a continuous Cartesian loop oscillates up to 20 cm against the soft
 # actuator PD; discrete solve -> ramp -> measure -> re-aim is what is stable):
 #
-#   SYNC_RAMP  — inside one ramp, scale each joint's rate by its own delta so
+#   SYNC_RAMP:   inside one ramp, scale each joint's rate by its own delta so
 #                every joint arrives on the SAME control step. Removes the
 #                "short-travel joints finish early" arc within a segment.
-#   CART_PATH  — interpolate the PALM POSE (position linearly, orientation by
+#   CART_PATH:   interpolate the PALM POSE (position linearly, orientation by
 #                rotation-vector interpolation) into waypoints, solve IK for
 #                each one OFFLINE on scratch MjData seeded from the previous
 #                solution, then ramp between consecutive joint solutions.
@@ -60,7 +60,7 @@ CYL_HALF = 0.037
 # Both are module switches so the before/after ablation is one assignment.
 CART_PATH = True
 SYNC_RAMP = True
-# Move tags kept ENTIRELY on the legacy joint-space shape — no waypoints and no
+# Move tags kept ENTIRELY on the legacy joint-space shape: no waypoints and no
 # rate synchronisation. EMPTY since M1.7: the whole episode now flies planned
 # Cartesian paths, so the foul model applies everywhere.
 #
@@ -332,7 +332,7 @@ class ArmIK6:
     as unreachable when the arm merely cannot get there FROM ITS CURRENT
     POSTURE. Measured: a 15 cm straight-up lift solved to 0.002 mm from one
     grasp posture and stalled 299 mm short from another 4 cm away, and the
-    controller flew the 299 mm solution — 45 cm of palm excursion, cylinder
+    controller flew the 299 mm solution: 45 cm of palm excursion, cylinder
     thrown off the table. Retrying from the default arm pose (and from
     mid-range) makes the residual a property of the TARGET, which is what both
     the controller and the feasibility search need it to be.
@@ -354,7 +354,7 @@ class ArmIK6:
   def solve(self, data, target_p, target_R=None, w_ori=0.5, iters=300,
             seed=None):
     """DLS IK on scratch MjData. `seed` starts the arm from a given joint
-    configuration instead of the measured one — that is what keeps consecutive
+    configuration instead of the measured one; that is what keeps consecutive
     Cartesian waypoints on the same IK branch (and makes them cheap: a
     waypoint 3.5 cm from its predecessor converges in a few iterations)."""
     d = self.scratch
@@ -412,7 +412,7 @@ class Runner:
     self.palm_trace = None       # set to [] to record the executed palm path
     self.ik_solves = 0           # waypoint IK solves spent by the controller
     # M1.6 straightness telemetry: one row per goto/goto_track/touchdown.
-    # `dev0_m` is THE measurement of the milestone — how far the executed palm
+    # `dev0_m` is THE measurement of the milestone: how far the executed palm
     # path strayed from the straight line between the two poses it was aimed
     # between. `move_tag` labels the next move; the pipeline sets it.
     self.move_log = []
@@ -569,7 +569,7 @@ class Runner:
     seeded from its predecessor. Returns (joint solutions, endpoint residual,
     diagnostics).
 
-    No simulation runs here and no measurement is fed back — this is not a
+    No simulation runs here and no measurement is fed back; this is not a
     task-space servo (which oscillates up to 20 cm against the soft actuator
     PD); it is a precomputed path the existing ramp plays back.
 
@@ -579,7 +579,7 @@ class Runner:
     the place descent aims 10 cm INTO the tabletop on purpose, and a DLS solve
     seeded from an awkward posture can stall in a local minimum 300 mm from a
     target the same arm reaches cleanly from elsewhere. The old controller
-    commanded those solutions anyway — measured, a 15 cm lift whose endpoint
+    commanded those solutions anyway: measured, a 15 cm lift whose endpoint
     solved 299 mm short swung the palm 45 cm and threw the cylinder off the
     table. So a waypoint whose residual exceeds `CART_WP_TOL`, or which sits
     more than `CART_JUMP_RAD` from its predecessor (an IK branch flip), ends
@@ -589,7 +589,7 @@ class Runner:
     `ray=True` is the exception, for "descend until something stops you": the
     contact-monitored place descent aims 10 cm INTO the tabletop deliberately,
     so its far waypoints have no exact solution and the best-effort DLS pose at
-    each is the deepest reachable point along the line — a progressively firmer
+    each is the deepest reachable point along the line, a progressively firmer
     press, which is what seats the object. A ray is therefore never truncated
     and never rejected: measured, truncating it on a branch flip stopped the
     descent 1.5 cm above the table, and a cylinder released 1.5 cm up lands
@@ -632,9 +632,9 @@ class Runner:
       # Measured: dropping the endpoint whenever its solution sat on a
       # different IK branch from the end of the chain cost 1.5-2 cm of palm
       # error and took capture from 7/25 to 0/25. So the endpoint is always
-      # commanded when it is reachable — the better of the chain-seeded
+      # commanded when it is reachable (the better of the chain-seeded
       # solution and the unseeded one the joint-space controller would have
-      # flown — and a branch change over that last segment is accepted.
+      # flown) and a branch change over that last segment is accepted.
       q_end, rp_end, rr_end = solve(self.data, target_p, target_R,
                                     iters=iters, seed=seed)
       self.ik_solves += 1
@@ -839,7 +839,7 @@ class Runner:
           st["g0"], st["g0f"] = self.grip_alpha, self.grip_alpha_f
         elif any(table in p for p in self.contact_pairs("right_hand")):
           print("    [touchdown] stopping: hand hit the table first")
-          return True  # jammed — pressing harder only fights the tabletop
+          return True  # jammed; pressing harder only fights the tabletop
       else:
         st["n"] += 1
         if seat_grip is not None:

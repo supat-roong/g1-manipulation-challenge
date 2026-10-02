@@ -57,7 +57,7 @@ def rotate_to(runner, goal_yaw, tol=np.radians(8), timeout=8.0):
     runner.step_once()
     if abs(yaw_err_to(data, goal_yaw)) < tol:
       break
-    if data.qpos[2] < 0.5:  # losing balance — hand back to the walker now
+    if data.qpos[2] < 0.5:  # losing balance: hand back to the walker now
       print("    [rotate_to] ABORTING burst: pelvis dropped below 0.5")
       break
   ctrl.walker_policy = saved  # back to walker, settle standing
@@ -75,7 +75,7 @@ def walk_to_pose(runner, goal_xy, goal_yaw, standoff=0.60,
   to change heading substantially, but drifts 8-35 cm doing it.
 
   So: walk direct when the walker can handle the heading itself; otherwise
-  dock — stage `standoff` behind the goal along the final heading, spend all
+  dock: stage `standoff` behind the goal along the final heading, spend all
   the rotation there (drift is harmless), then one straight leg in.
   """
   data = runner.data
@@ -88,7 +88,7 @@ def walk_to_pose(runner, goal_xy, goal_yaw, standoff=0.60,
   else:
     heading = np.array([np.cos(goal_yaw), np.sin(goal_yaw)])
     stage = goal_xy - standoff * heading
-    # Translate to staging WITHOUT turning — the walker is omnidirectional,
+    # Translate to staging WITHOUT turning; the walker is omnidirectional,
     # and every extra in-place spin is both drift and a fall risk (a ~177 deg
     # rotator burst while holding a loaded outstretched arm fell the robot).
     if np.linalg.norm(stage - data.qpos[:2]) > 0.15:
