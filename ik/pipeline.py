@@ -849,10 +849,12 @@ CLOSE_GATE_MIN_GRIP = 0.7  # never freeze below this — an open hand holds noth
 CLOSE_GATE_EVERY = 10      # physics steps between gate checks (0.05 s)
 
 
-# Command-level HL seam (g1hl/commander.py). `None` = the script's own fixed
+# High-level policy seam (hl/commander.py). `None` = the script's own fixed
 # `PICK_STANCE` / `PLACE_STANCE`, bit for bit. Otherwise an object with
 # `pick_stance(ctx)` and `place_stance(ctx)`, each returning `(xy, yaw)` in the
-# world frame; the script still verifies and corrects everything after it.
+# world frame. A commander with `direct = True` also owns the crouch and the
+# grasp (`grasp`, `move_instead`), and the replanner is skipped; otherwise the
+# script verifies and corrects everything after the stance.
 COMMANDER = None
 
 
@@ -3129,7 +3131,7 @@ def pick_only(runner, geo, place_cyl=None, force=None):
   """Settle, choose a grasp from the pose the robot is standing in, fly the
   explicit path, close and lift — no walking, no replanning, no carry.
 
-  This is what `experiments/pick_grid.py` measures: the grasp alone, over a grid
+  This is what the static pick grid (on the `dev` branch) measures: the grasp alone, over a grid
   of cylinder-in-body offsets, from a static stance. It shares `fly_grasp_path`
   and `close_and_lift` with the pipeline, so the grid cannot measure a different
   controller from the one `run_once` flies.
@@ -3389,7 +3391,7 @@ def place_object(runner, geo, R_c, T, phase=None):
   Everything from the tucked carry to an open hand clear of the object:
   un-tuck, search the tabletop for a reachable point, crouch if standing
   cannot reach it, translate above it, descend to contact, seat, release in
-  stages, retract. Extracted from `run_once` so `experiments/place_grid.py`
+  stages, retract. Extracted from `run_once` so the static place grid (`dev` branch)
   measures THIS code rather than a copy of it — the same relationship
   `pick_only` has with `fly_grasp_path`.
   """
@@ -3914,7 +3916,7 @@ def run_once(spawn=(-1.2, 0.15), cyl_shift=(0.0, 0.0), video="v2_run.mp4",
     phase("transported")
 
     # ================= 4. PLACE (crouch only if IK says so) ==============
-    # `place_object` is module level so `experiments/place_grid.py` can fly
+    # `place_object` is module level so the static place grid (`dev`) can fly
     # exactly this code from a static place stance.
     place_object(runner, geo,
                  carry_yaw_fix(R_c, yaw_pick, float(ep.base_yaw(data)), T),
