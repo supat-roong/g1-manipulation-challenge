@@ -2,6 +2,10 @@
 
 > **My solution:** the approach, results and how to run it are in [WRITEUP.md](WRITEUP.md). The rest of this README is the original challenge brief.
 
+| IK pipeline (`shipped`, seed 3, episode 0) | Direct HL (`hl_full`, seed 3, episode 4) |
+|---|---|
+| ![IK pipeline success](media/ik_0.gif) | ![Direct HL success](media/hl_4.gif) |
+
 ## Overview
 
 We're inviting you to tackle an open-ended robotics manipulation problem. This isn't a test with a correct answer — it's an opportunity for us to understand how you approach novel challenges, decompose complex problems, and iterate toward solutions.
