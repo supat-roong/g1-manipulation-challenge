@@ -20,11 +20,16 @@ The 450-episode figures pool nine seeds. On the three seeds the pipeline was dev
 
 ### Demo
 
-| IK pipeline (`shipped`, seed 3, episode 0, 8x speed) | Direct HL (`hl_full`, seed 3, episode 0, 14x speed) |
-|---|---|
-| ![IK pipeline success](media/ik_success.gif) | ![Direct HL success](media/hl_success.gif) |
+Three successes and one failure for each controller, all on seed 3 and shown at 10x speed. The successes are the first three on that seed, and the failure is the first one.
 
-Both are successful episodes from the regression tests, rendered with `eval/sweep.py --video`.
+| | IK pipeline (`shipped`) | Direct HL (`hl_full`) |
+|---|---|---|
+| Success | ![IK episode 0](media/ik_0.gif)<br>episode 0 | ![HL episode 0](media/hl_0.gif)<br>episode 0 |
+| Success | ![IK episode 1](media/ik_1.gif)<br>episode 1 | ![HL episode 4](media/hl_4.gif)<br>episode 4 |
+| Success | ![IK episode 2](media/ik_2.gif)<br>episode 2 | ![HL episode 5](media/hl_5.gif)<br>episode 5 |
+| Failure | ![IK episode 7](media/ik_7.gif)<br>episode 7: dropped in transport | ![HL episode 1](media/hl_1.gif)<br>episode 1: dropped in transport |
+
+Rendered with `eval/sweep.py --video`. To reproduce an episode, run a sweep with the same seed and preset.
 
 ```
 g1-manipulation-challenge/
